@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import SolvePage from './pages/SolvePage';
 
 //import './App.css'

@@ -30,7 +30,7 @@ loader.config({ monaco });
 
 loader.init().then(/* ... */);
 
-export default function CodeEditor() {
+export default function CodeEditor(lang: string) {
 
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
@@ -44,10 +44,11 @@ export default function CodeEditor() {
     }
 
     return (
-        <div>
+        <div style={{ height: '100%' }}>
             <button onClick={showValue}>Show value</button>
             <Editor
-                defaultLanguage="javascript"
+                height="100%"
+                defaultLanguage={lang}
                 defaultValue="// some comment"
                 onMount={handleEditorDidMount}
                 options={{
