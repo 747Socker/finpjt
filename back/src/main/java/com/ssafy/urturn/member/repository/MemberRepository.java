@@ -12,4 +12,6 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberCus
 
     boolean existsByNickname(String nickname);
     boolean existsByGithubToken(String githubToken);
+
+
 }
