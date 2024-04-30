@@ -20,6 +20,11 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
 
+    public Member getMemberById(Long id){
+        return memberRepository.findById(id).orElseThrow(() ->  new RestApiException(
+            CustomErrorCode.NO_MEMBER));
+    }
+
     public MemberDetailResponse getCurrentMember() {
         Long currentMemberId = MemberUtil.getMemberId();
         Member currentMember = memberRepository.findById(currentMemberId).orElseThrow(() ->  new RestApiException(
