@@ -1,10 +1,11 @@
-package com.ssafy.urturn.solving.socket;
+package com.ssafy.urturn.solving.temp;
 
 import com.ssafy.urturn.global.exception.RestApiException;
 import com.ssafy.urturn.global.util.MemberUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.server.HandshakeInterceptor;
@@ -28,6 +29,7 @@ attributes 핸드셰이크 요청 당 한 번 생성, 각각의 웹소켓 핸드
  */
 
 @RequiredArgsConstructor
+@Component
 public class MemberIdHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override

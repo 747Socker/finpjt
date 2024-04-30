@@ -6,9 +6,8 @@ import com.ssafy.urturn.solving.cache.cacheDatas;
 import com.ssafy.urturn.solving.dto.RoomStatus;
 import com.ssafy.urturn.solving.dto.roomInfoDto;
 import com.ssafy.urturn.solving.dto.roomInfoResponse;
-import com.ssafy.urturn.solving.socket.WebSocketSessionManager;
+import com.ssafy.urturn.solving.temp.WebSocketSessionManager;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;

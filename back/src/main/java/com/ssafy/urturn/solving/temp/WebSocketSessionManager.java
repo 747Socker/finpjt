@@ -1,4 +1,4 @@
-package com.ssafy.urturn.solving.socket;
+package com.ssafy.urturn.solving.temp;
 
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;

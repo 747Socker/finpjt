@@ -1,4 +1,4 @@
-package com.ssafy.urturn.solving.socket;
+package com.ssafy.urturn.solving.temp;
 import org.springframework.web.socket.CloseStatus;
 
 import lombok.RequiredArgsConstructor;
