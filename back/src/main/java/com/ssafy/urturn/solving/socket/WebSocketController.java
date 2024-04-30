@@ -40,9 +40,10 @@ public class WebSocketController {
 
     @MessageMapping("/createRoom")
     public void createRoom() {
-//        roomInfoResponse response = roomService.createRoom(request);
+        roomInfoResponse response = roomService.createRoom();
 //        // response에 포함된 방 정보를 이용하여 방을 생성한 사용자에게만 응답을 보냄
-//        simpMessagingTemplate.convertAndSendToUser(request.getUserId().toString(), "/queue/roomCreated", response);
+        simpMessagingTemplate.convertAndSendToUser(MemberUtil.getMemberId().toString(), "/queue/roomInfo", response);
+        simpMessagingTemplate.convertAndSendToUser(MemberUtil.getMemberId().toString(),"/queue/userInfo",roomService.getUserInfo());
     }
 
     @MessageMapping("/enter")

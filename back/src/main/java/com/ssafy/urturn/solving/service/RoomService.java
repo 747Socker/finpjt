@@ -6,6 +6,7 @@ import com.ssafy.urturn.solving.cache.cacheDatas;
 import com.ssafy.urturn.solving.dto.RoomStatus;
 import com.ssafy.urturn.solving.dto.roomInfoDto;
 import com.ssafy.urturn.solving.dto.roomInfoResponse;
+import com.ssafy.urturn.solving.dto.userInfoResponse;
 import com.ssafy.urturn.solving.temp.WebSocketSessionManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,10 @@ public class RoomService {
 
     }
 
+    public userInfoResponse getUserInfo(){
+        return memberService.getMemberInfo(MemberUtil.getMemberId());
+    }
+
     public String canEnterRoom(String entryCode){
         /*
         cacheRoomId 가 null 인 경우 에러 메시지 반환.
@@ -59,9 +64,9 @@ public class RoomService {
         // 방에 참여자 ID 저장.
         roomInfo.setParticipantId(MemberUtil.getMemberId());  // 추후 토큰에서 추출하는 것으로 변경 예정
         return cachedatas.cacheRoomId(entryCode);
-
-
     }
+
+
 
 
 }
