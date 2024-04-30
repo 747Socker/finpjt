@@ -13,6 +13,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,13 +36,21 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
             List<String> authorization = accessor.getNativeHeader(JwtTokenProvider.HEADER);
             if (authorization != null && !authorization.isEmpty()) {
                 String token = authorization.get(0).substring(JwtTokenProvider.TOKEN_PREFIX.length());
+                log.info("interceptor jwt token : {}", token);
                 try {
                     // JWT 토큰 검증
-                    if(!jwtTokenProvider.validateToken(token)) return null;
+                    if(token == null || !jwtTokenProvider.validateToken(token)) return null;
 
                     // 유저 정보 저장
                     Authentication authentication = jwtTokenProvider.getAuthentication(token);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                    UserDetails userDetails = (UserDetails) principal;
+
+                    log.info("authentication success");
+                    log.info("id : {}", userDetails.getUsername());
+
                 } catch (Exception e) {
                     log.error("An unexpected error occurred: " + e.getMessage());
                     throw new RestApiException(CommonErrorCode.INTERNAL_SERVER_ERROR, "소켓 interceptor jwt 인증 에러가 발생하였습니다.");

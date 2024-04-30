@@ -9,6 +9,7 @@ import com.ssafy.urturn.solving.dto.roomInfoResponse;
 import com.ssafy.urturn.solving.dto.userInfoResponse;
 import com.ssafy.urturn.solving.temp.WebSocketSessionManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -23,7 +24,7 @@ public class RoomService {
     /*
     방생성
      */
-    public roomInfoResponse createRoom(){
+    public roomInfoResponse createRoom(Long userId){
         // 방 ID
         String roomId= UUID.randomUUID().toString();
         // 입장코드
@@ -31,7 +32,7 @@ public class RoomService {
 
         // 방 정보 DTO 생성
         roomInfoDto roominfodto=new roomInfoDto();
-        roominfodto.setManagerId(MemberUtil.getMemberId());
+        roominfodto.setManagerId(userId);
         roominfodto.setRoomStatus(RoomStatus.WAITING);
 
         // 초대코드 키로 방 ID 캐시

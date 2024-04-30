@@ -2,23 +2,30 @@ package com.ssafy.urturn.solving.socket;
 
 
 import com.ssafy.urturn.global.util.MemberUtil;
+import com.ssafy.urturn.member.entity.Member;
 import com.ssafy.urturn.member.service.MemberService;
 import com.ssafy.urturn.solving.cache.cacheDatas;
+import com.ssafy.urturn.solving.dto.memberIdDto;
 import com.ssafy.urturn.solving.dto.roomInfoDto;
 import com.ssafy.urturn.solving.dto.roomInfoResponse;
 import com.ssafy.urturn.solving.dto.userInfoResponse;
 import com.ssafy.urturn.solving.service.RoomService;
 import com.ssafy.urturn.solving.temp.WebSocketSessionManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.socket.WebSocketSession;
 
 import static com.ssafy.urturn.global.util.JsonUtil.convertObjectToJson;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class WebSocketController {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
@@ -36,14 +43,18 @@ public class WebSocketController {
     public void test(){
         System.out.println("test");
         simpMessagingTemplate.convertAndSendToUser(MemberUtil.getMemberId().toString(),"/queue/test","test");
+        // user/{userId}/queue/test
     }
 
     @MessageMapping("/createRoom")
-    public void createRoom() {
-        roomInfoResponse response = roomService.createRoom();
+    public void createRoom(@Payload memberIdDto memberId) {
+        Long userId=memberId.getMemberId();
+//        System.out.println(str);
+        roomInfoResponse response = roomService.createRoom(userId);
+        System.out.println(response);
 //        // response에 포함된 방 정보를 이용하여 방을 생성한 사용자에게만 응답을 보냄
-        simpMessagingTemplate.convertAndSendToUser(MemberUtil.getMemberId().toString(), "/queue/roomInfo", response);
-        simpMessagingTemplate.convertAndSendToUser(MemberUtil.getMemberId().toString(),"/queue/userInfo",roomService.getUserInfo());
+        simpMessagingTemplate.convertAndSendToUser(userId.toString(), "/roomInfo", response);
+//        simpMessagingTemplate.convertAndSendToUser(userId.toString(),"/queue/userInfo",roomService.getUserInfo());
     }
 
     @MessageMapping("/enter")
