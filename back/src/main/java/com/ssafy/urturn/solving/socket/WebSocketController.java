@@ -5,10 +5,7 @@ import com.ssafy.urturn.global.util.MemberUtil;
 import com.ssafy.urturn.member.entity.Member;
 import com.ssafy.urturn.member.service.MemberService;
 import com.ssafy.urturn.solving.cache.cacheDatas;
-import com.ssafy.urturn.solving.dto.memberIdDto;
-import com.ssafy.urturn.solving.dto.roomInfoDto;
-import com.ssafy.urturn.solving.dto.roomInfoResponse;
-import com.ssafy.urturn.solving.dto.userInfoResponse;
+import com.ssafy.urturn.solving.dto.*;
 import com.ssafy.urturn.solving.service.RoomService;
 import com.ssafy.urturn.solving.temp.WebSocketSessionManager;
 import lombok.RequiredArgsConstructor;
@@ -47,23 +44,64 @@ public class WebSocketController {
     }
 
     @MessageMapping("/createRoom")
-    public void createRoom(@Payload memberIdDto memberId) {
-        Long userId=memberId.getMemberId();
+    public void createRoom(@Payload memberIdDto memberIddto) {
+        Long userId=memberIddto.getMemberId();
 //        System.out.println(str);
-        roomInfoResponse response = roomService.createRoom(userId);
-        System.out.println(response);
+        roomInfoResponse roomInfoResponse = roomService.createRoom(userId);
+        userInfoResponse userInfoResponse = roomService.getUserInfo(userId,null);
 //        // response에 포함된 방 정보를 이용하여 방을 생성한 사용자에게만 응답을 보냄
-        simpMessagingTemplate.convertAndSendToUser(userId.toString(), "/roomInfo", response);
-//        simpMessagingTemplate.convertAndSendToUser(userId.toString(),"/queue/userInfo",roomService.getUserInfo());
+        simpMessagingTemplate.convertAndSendToUser(userId.toString(), "/roomInfo", roomInfoResponse);
+        simpMessagingTemplate.convertAndSendToUser(userId.toString(),"/userInfo",userInfoResponse);
     }
 
-    @MessageMapping("/enter")
-    public void enterRoom(String roomId) {
+    @MessageMapping("/enterRoom")
+    public void enterRoom(@Payload roomIdDto roomIddto) {
 
+        String roomId=roomIddto.getRoomId();
+        Long participantId=cachedatas.cacheroomInfoDto(roomId).getParticipantId();
+        Long managerId=cachedatas.cacheroomInfoDto(roomId).getManagerId();
+        userInfoResponse userInfoResponse=roomService.getUserInfo(participantId,managerId);
 
+        roomInfoResponse roomInfoResponse=new roomInfoResponse(roomId,null, false);
+
+        simpMessagingTemplate.convertAndSendToUser(participantId.toString(), "/roomInfo", roomInfoResponse);
+        simpMessagingTemplate.convertAndSendToUser(participantId.toString(),"/userInfo",userInfoResponse);
+        userInfoResponse userInfoResponse2=roomService.getUserInfo(managerId,participantId);
+        simpMessagingTemplate.convertAndSendToUser(managerId.toString(),"/userInfo",userInfoResponse2);
     }
 
 
+    @MessageMapping("/selectDifficulty")
+    public void readContext(@Payload selectDifficultyRequest selectDifficultyRequest){
+
+
+        // 두 유저ID 추출
+        Long participantId=cachedatas.cacheroomInfoDto(selectDifficultyRequest.getRoomId()).getParticipantId();
+        Long managerId=cachedatas.cacheroomInfoDto(selectDifficultyRequest.getRoomId()).getManagerId();
+
+        algoQuestionResponse[] algoQuestions=roomService.getAlgoQuestion(selectDifficultyRequest.getDifficulty());
+        simpMessagingTemplate.convertAndSendToUser(participantId.toString(), "/questionInfo",algoQuestions);
+        simpMessagingTemplate.convertAndSendToUser(managerId.toString(),"/questionInfo",algoQuestions);
+
+    }
+
+    @MessageMapping("/readyToSolve")
+    public void readyToSolve(@Payload readyInfoRequest readyInfoRequest){
+
+        Long participantId=cachedatas.cacheroomInfoDto(readyInfoRequest.getRoomId()).getParticipantId();
+        Long managerId=cachedatas.cacheroomInfoDto(readyInfoRequest.getRoomId()).getManagerId();
+
+        if(roomService.setReadyInRoomInfo(readyInfoRequest)){
+            simpMessagingTemplate.convertAndSendToUser(participantId.toString(), "/questionInfo",true);
+            simpMessagingTemplate.convertAndSendToUser(managerId.toString(),"/questionInfo",true);
+        }
+        if(readyInfoRequest.isHost()) {
+            simpMessagingTemplate.convertAndSendToUser(managerId.toString(), "/questionInfo", true);
+        }else{
+            simpMessagingTemplate.convertAndSendToUser(participantId.toString(), "/questionInfo", true);
+        }
+
+    }
 
 }
 /*

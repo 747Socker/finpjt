@@ -3,10 +3,7 @@ package com.ssafy.urturn.solving.service;
 import com.ssafy.urturn.global.util.MemberUtil;
 import com.ssafy.urturn.member.service.MemberService;
 import com.ssafy.urturn.solving.cache.cacheDatas;
-import com.ssafy.urturn.solving.dto.RoomStatus;
-import com.ssafy.urturn.solving.dto.roomInfoDto;
-import com.ssafy.urturn.solving.dto.roomInfoResponse;
-import com.ssafy.urturn.solving.dto.userInfoResponse;
+import com.ssafy.urturn.solving.dto.*;
 import com.ssafy.urturn.solving.temp.WebSocketSessionManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -14,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.ssafy.urturn.solving.dto.RoomStatus.IN_GAME;
 
 @Service
 @RequiredArgsConstructor
@@ -45,26 +44,80 @@ public class RoomService {
 
     }
 
-    public userInfoResponse getUserInfo(){
-        return memberService.getMemberInfo(MemberUtil.getMemberId());
+    public userInfoResponse getUserInfo(Long myUserId,Long relativeUserId){
+
+        return memberService.getMemberInfo(myUserId,relativeUserId);
     }
 
-    public String canEnterRoom(String entryCode){
-        /*
-        cacheRoomId 가 null 인 경우 에러 메시지 반환.
-        null이 아닌 경우 cacheroomInfoDto 메서드로 방 정보 가져 옴.
-         */
-        roomInfoDto roomInfo = Optional.ofNullable(cachedatas.cacheRoomId(entryCode))
-                .map(cachedatas::cacheroomInfoDto)
-                .orElseThrow(() -> new RuntimeException("해당 방이 존재하지 않습니다."));
-
-        if (roomInfo.getRoomStatus() != RoomStatus.WAITING) {
-            throw new RuntimeException("해당 방은 " + roomInfo.getRoomStatus() + " 상태입니다.");
+    public String canEnterRoom(String entryCode) {
+        // 캐시된 방 ID 가져오기
+        String roomId = cachedatas.cacheRoomId(entryCode);
+        if (roomId == null) {
+            throw new RuntimeException("해당 방이 존재하지 않습니다.");
         }
 
-        // 방에 참여자 ID 저장.
-        roomInfo.setParticipantId(MemberUtil.getMemberId());  // 추후 토큰에서 추출하는 것으로 변경 예정
-        return cachedatas.cacheRoomId(entryCode);
+        // 방 정보 가져오기
+        roomInfoDto roomInfo = cachedatas.cacheroomInfoDto(roomId);
+        if (roomInfo == null) {
+            throw new RuntimeException("방 정보를 가져올 수 없습니다.");
+        }
+
+        // 방 상태 확인
+        if (roomInfo.getRoomStatus() != RoomStatus.WAITING) {
+            throw new RuntimeException("해당 방은 현재 " + roomInfo.getRoomStatus()+ " 상태입니다.");
+        }
+
+        // 참여자 ID 설정
+        roomInfo.setParticipantId(MemberUtil.getMemberId());
+
+        // 방 정보 업데이트
+        cachedatas.cacheroomInfoDto(roomId, roomInfo);
+
+        return roomId;
+    }
+
+    public algoQuestionResponse[] getAlgoQuestion(Difficulty difficulty){
+        // DB에서 문제 추출
+        algoQuestionResponse[] algoQuestion = new algoQuestionResponse[2];
+
+
+        // 일단은 하드코딩
+        algoQuestion[0]=new algoQuestionResponse(0L,"https://a305-project-bucket.s3.ap-northeast-2.amazonaws.com/AlgoQuestion/SheepAndWolves.txt",
+                "양늑이");
+        algoQuestion[1]=new algoQuestionResponse(1L,"https://a305-project-bucket.s3.ap-northeast-2.amazonaws.com/AlgoQuestion/test.txt"
+        ,"늑양이");
+
+        return algoQuestion;
+    }
+
+    public boolean setReadyInRoomInfo(readyInfoRequest readyInfoRequest) {
+        String roomId = readyInfoRequest.getRoomId();
+        roomInfoDto roomInfo = cachedatas.cacheroomInfoDto(roomId);
+        boolean isHost = readyInfoRequest.isHost();
+
+        // 준비 상태 업데이트
+        updateReadyStatus(roomInfo, isHost);
+        cachedatas.updateCodeCache(roomId, readyInfoRequest.getAlgoQuestionId().toString(), null);
+
+        // 두 사용자가 모두 준비되었는지 확인
+        if (areBothParticipantsReady(roomInfo)) {
+            roomInfo.setRoomStatus(RoomStatus.IN_GAME);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void updateReadyStatus(roomInfoDto roomInfo, boolean isHost) {
+        if (isHost) {
+            roomInfo.setManagerIsReady(true);
+        } else {
+            roomInfo.setParticipantIsReady(true);
+        }
+    }
+
+    private boolean areBothParticipantsReady(roomInfoDto roomInfo) {
+        return roomInfo.isManagerIsReady() && roomInfo.isParticipantIsReady();
     }
 
 

@@ -10,6 +10,8 @@ public class roomInfoDto {
     private Long managerId;
     private Long participantId;
     private RoomStatus roomStatus;
+    private boolean managerIsReady;
+    private boolean participantIsReady;
 
 
 }

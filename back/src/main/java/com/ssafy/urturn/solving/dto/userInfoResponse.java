@@ -10,6 +10,8 @@ import lombok.Setter;
 @Setter
 @Getter
 public class userInfoResponse {
-    private String userProfileUrl;
-    private String userNickName;
+    private String myUserProfileUrl;
+    private String myUserNickName;
+    private String relativeUserProfileUrl;
+    private String relativeUserNickName;
 }
