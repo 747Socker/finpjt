@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -97,14 +98,21 @@ public class RoomService {
 
         // 준비 상태 업데이트
         updateReadyStatus(roomInfo, isHost);
+
         cachedatas.updateCodeCache(roomId, readyInfoRequest.getAlgoQuestionId().toString(), null);
 
         // 두 사용자가 모두 준비되었는지 확인
         if (areBothParticipantsReady(roomInfo)) {
+            // 두 사용자가 모두 준비완료를 했을 경우.
             roomInfo.setRoomStatus(RoomStatus.IN_GAME);
+            roomInfo.setManagerIsReady(false);
+            roomInfo.setParticipantIsReady(false);
+            roomInfo.setStartTime(LocalDateTime.now());
+            cachedatas.cacheroomInfoDto(roomId, roomInfo);
             return true;
         }
 
+        cachedatas.cacheroomInfoDto(roomId, roomInfo);
         return false;
     }
 
@@ -119,8 +127,6 @@ public class RoomService {
     private boolean areBothParticipantsReady(roomInfoDto roomInfo) {
         return roomInfo.isManagerIsReady() && roomInfo.isParticipantIsReady();
     }
-
-
 
 
 }

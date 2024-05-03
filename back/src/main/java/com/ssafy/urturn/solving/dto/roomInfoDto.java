@@ -2,6 +2,8 @@ package com.ssafy.urturn.solving.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
@@ -12,6 +14,7 @@ public class roomInfoDto {
     private RoomStatus roomStatus;
     private boolean managerIsReady;
     private boolean participantIsReady;
-
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
 }

@@ -95,13 +95,17 @@ public class WebSocketController {
             simpMessagingTemplate.convertAndSendToUser(participantId.toString(), "/questionInfo",true);
             simpMessagingTemplate.convertAndSendToUser(managerId.toString(),"/questionInfo",true);
         }
-        if(readyInfoRequest.isHost()) {
-            simpMessagingTemplate.convertAndSendToUser(managerId.toString(), "/questionInfo", true);
-        }else{
-            simpMessagingTemplate.convertAndSendToUser(participantId.toString(), "/questionInfo", true);
-        }
 
     }
+
+//    @MessageMapping("/switchCode")
+//    public void switchCode(){
+//        // 방 ID, 문제 ID 확인해 코드 스냅샷 저장.
+//        cachedatas.updateCodeCache()
+//        // 준비상태 확인
+//
+//        // 모두 준비완료 상태라면 서로의 코드 + 라운드 전송.
+//    }
 
 }
 /*
