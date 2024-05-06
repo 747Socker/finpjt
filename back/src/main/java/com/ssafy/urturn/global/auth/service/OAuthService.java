@@ -1,8 +1,6 @@
 package com.ssafy.urturn.global.auth.service;
 
 
-import static com.ssafy.urturn.global.exception.errorcode.CustomErrorCode.COOKIE_REFRESH_TOKEN_NOT_EXISTS;
-import static com.ssafy.urturn.global.exception.errorcode.CustomErrorCode.INVALID_REFRESH_TOKEN;
 import static com.ssafy.urturn.global.exception.errorcode.CustomErrorCode.NO_MEMBER;
 
 import com.ssafy.urturn.global.auth.JwtToken;
@@ -45,7 +43,6 @@ public class OAuthService {
     private final OAuthClient githubOAuthClient;
     private final PasswordEncoder passwordEncoder;
     private final JwtRedisRepository jwtRedisRepository;
-    private final AES128Util aes128Util;
 
 
     @Value("spring.security.oauth2.client.registration.password-salt")
@@ -61,7 +58,7 @@ public class OAuthService {
         log.info("res.getProfileUrl() : {}", res.getProfileUrl());
         log.info("res.getAccessToken() : {}", res.getAccessToken());
         createIfNewMember(res);
-        return login(res.getAccessToken());
+        return login(res.getOauthId());
     }
 
     @Transactional
@@ -79,13 +76,13 @@ public class OAuthService {
     // memberId로 조회하는 것으로 수정 필요
     private void updateAccessToken(OAuthMemberInfoResponse res){
 //        Long memberId = MemberUtil.getMemberId();
-        Member member = memberRepository.findByNickname(res.getName()).orElseThrow(() -> new RestApiException(NO_MEMBER));
+        Member member = memberRepository.findByGithubUniqueId(res.getOauthId()).orElseThrow(() -> new RestApiException(NO_MEMBER));
         member.updateGithubTokens(res.getAccessToken());
     }
 
 
-    private LoginResponse login(String githubAccessToken) {
-        Member member = memberRepository.findByGithubAccessToken(githubAccessToken).orElseThrow(() -> new RestApiException(NO_MEMBER));
+    private LoginResponse login(String githubUniqueId) {
+        Member member = memberRepository.findByGithubUniqueId(githubUniqueId).orElseThrow(() -> new RestApiException(NO_MEMBER));
         log.info("id : {}", member.getId());
         log.info("role : {}", member.getRoles());
         log.info("githubAccessToken : {}", member.getGithubAccessToken());
@@ -119,11 +116,12 @@ public class OAuthService {
 
     private void createIfNewMember(OAuthMemberInfoResponse res) {
         log.info("access token : {}", res.getAccessToken());
-        if (!memberRepository.existsByGithubAccessToken(res.getOauthId())){
+        if (!memberRepository.existsByNickname(res.getName())){
             Member member =
                 Member.builder()
                     .profileImage(res.getProfileUrl())
                     .githubAccessToken(res.getAccessToken())
+                    .githubUniqueId(res.getOauthId())
                     .nickname(res.getName())
                     .email(res.getEmail())
                     .roles(List.of(Role.USER))
@@ -134,16 +132,4 @@ public class OAuthService {
         }
     }
 
-    public String reissueAccessToken(String encryptedRefreshToken) {
-        // 유저가 제공한 refreshToken이 있는지 확인
-        if (encryptedRefreshToken == null) throw new RestApiException(COOKIE_REFRESH_TOKEN_NOT_EXISTS);
-        String refreshToken = aes128Util.decryptAes(encryptedRefreshToken);
-        // userId 정보를 가져와서 redis에 있는 refreshtoken과 같은지 확인
-        Claims claims = jwtTokenProvider.parseClaims(refreshToken);
-        String memberId = claims.getSubject();
-        String redisRefreshToken = jwtRedisRepository.find(KeyUtil.getRefreshTokenKey(memberId));
-        if (redisRefreshToken == null || !redisRefreshToken.equals(refreshToken)) throw new RestApiException(INVALID_REFRESH_TOKEN);
-        // 같다면 refreshToken을 활용하여 새로운 accessToken을 발급
-        return jwtTokenProvider.generateAccessToken(memberId, claims.get("auth").toString());
-    }
 }
