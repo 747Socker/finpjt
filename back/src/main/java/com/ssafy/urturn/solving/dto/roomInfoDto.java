@@ -9,12 +9,18 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 public class roomInfoDto {
+    // 방장 ID
     private Long managerId;
+    // 팀원 ID
     private Long participantId;
     private RoomStatus roomStatus;
     private boolean managerIsReady;
     private boolean participantIsReady;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    // 문제1 ID
+    private Long problem1Id;
+    // 문제2 ID
+    private Long problem2Id;
+//    private LocalDateTime startTime;
+//    private LocalDateTime endTime;
 
 }
