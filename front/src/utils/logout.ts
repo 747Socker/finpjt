@@ -6,6 +6,7 @@ export const useLogout = () => {
     const navigate = useNavigate();
     return () => {
         clearAuth();
+        console.log("logout");
         //쿠키 삭제 로직 추가?
         navigate('/');
     };
