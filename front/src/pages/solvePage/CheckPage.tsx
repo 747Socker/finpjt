@@ -74,14 +74,30 @@ export default function CheckPage() {
 										color: 'white',
 									}}
 								>
-									{roomStore.questionInfos && activeQuestion > 0 && roomStore.questionInfos[activeQuestion - 1].algoQuestionTitle}
+									{roomStore.questionInfos && activeQuestion > 0 ? roomStore.questionInfos[activeQuestion - 1].algoQuestionTitle : <div></div>}
 								</div>
 							</div>
 							<div style={{ height: '100%', overflowY: 'auto' }}>
-              {
-                roomStore.questionInfos && activeQuestion > 0 &&
-                <Markdown>{roomStore.questionInfos[activeQuestion - 1].algoQuestionContent}</Markdown>
-              }
+								{
+									roomStore.questionInfos && activeQuestion > 0 ?
+									<div>
+									<Markdown>{roomStore.questionInfos[activeQuestion - 1].algoQuestionContent}</Markdown> 
+									<hr/>
+									<div>
+									{roomStore.questionInfos[activeQuestion - 1].testCases.map((testCase) => {
+										return (
+											<div>
+												{testCase.id} 번 테스트 케이스
+												{testCase.stdin} | {testCase.expectedOutput}
+												<hr/>
+											</div>
+										)
+									})}
+									</div>
+									</div>
+									:
+									<div></div>
+								}
 							</div>
 						</Allotment.Pane>
 						<Allotment.Pane minSize={350}>
